@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desain 3D Bank Sampah Botol Plastik - Desa Sadasari</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg: #e3e9e2;
+    --panel: #f3f6f1;
+    --ink: #1c2a1f;
+    --muted: #55655a;
+    --line: #b9c6b9;
+    --green: #3f9a1c;
+    --green-ink: #ffffff;
+    --dim: #d9480f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161c18; --panel: #1f2722; --ink: #e5ece4; --muted: #9aab9d; --line: #34423a;
+      --green: #6cc93f; --green-ink: #10200a; --dim: #ff8a4c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161c18; --panel: #1f2722; --ink: #e5ece4; --muted: #9aab9d; --line: #34423a;
+    --green: #6cc93f; --green-ink: #10200a; --dim: #ff8a4c;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+  #app { height: 100%; display: flex; flex-direction: column; }
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 24px; padding: 14px 18px 10px; }
+  h1 { margin: 0; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-weight: 700; font-size: clamp(22px, 4.6vw, 34px); line-height: 1.05; letter-spacing: .01em; }
+  .sub { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
+  .specs { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .specs li { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px 6px; min-width: 64px; }
+  .specs b { display: block; font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; font-size: 22px; line-height: 1.05; font-weight: 600; }
+  .specs span { font-size: 12px; color: var(--muted); }
+  #stage { position: relative; flex: 1; min-height: 0; }
+  #view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+  #view:active { cursor: grabbing; }
+  .note { position: absolute; left: 14px; right: 14px; bottom: 8px; margin: 0; font-size: 12px; color: var(--muted); pointer-events: none; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; padding: 10px 14px 12px; border-top: 1px solid var(--line); background: var(--panel); }
+  .group { display: flex; flex-wrap: wrap; gap: 6px; }
+  button { font: inherit; font-size: 14px; font-weight: 500; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; cursor: pointer; }
+  button:hover { border-color: var(--green); }
+  button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+  button[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: var(--green-ink); }
+  #views button.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  @media (max-width: 560px) { .specs li { min-width: 0; padding: 4px 8px 5px; } .specs b { font-size: 19px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div>
+      <h1>Bank Sampah Botol Plastik<br>Desa Sadasari</h1>
+      <p class="sub">Kelompok 4, KKM UMC 2026</p>
+    </div>
+    <ul class="specs" aria-label="Ukuran dalam cm">
+      <li><b>150</b><span>Panjang cm</span></li>
+      <li><b>50</b><span>Lebar cm</span></li>
+      <li><b>100</b><span>Tinggi cm</span></li>
+      <li><b>10</b><span>Kaki cm</span></li>
+    </ul>
+  </header>
+  <div id="stage">
+    <canvas id="view" aria-label="Model 3D kandang bank sampah, seret untuk memutar"></canvas>
+    <p class="note">Seret untuk memutar, geser dua jari atau scroll untuk zoom. Tinggi 100 cm sudah termasuk kaki 10 cm.</p>
+  </div>
+  <div class="bar">
+    <div class="group" id="views">
+      <button data-v="iso" class="on">Isometrik</button>
+      <button data-v="front">Depan</button>
+      <button data-v="side">Samping</button>
+      <button data-v="top">Atas</button>
+    </div>
+    <div class="group" id="toggles">
+      <button data-t="dims" aria-pressed="true">Ukuran</button>
+      <button data-t="roof" aria-pressed="true">Atap</button>
+      <button data-t="rack" aria-pressed="true">Rak kayu</button>
+      <button data-t="bottles" aria-pressed="true">Botol</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  const W = 150, D = 50, H = 100, LEG = 10;
+  const HX = W / 2, HZ = D / 2;
+
+  const canvas = document.getElementById('view');
+  const stage = document.getElementById('stage');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(32, 1, 5, 3000);
+  const target = new THREE.Vector3(0, 48, 0);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x6f7a6a, 0.85));
+  const sun = new THREE.DirectionalLight(0xfff4e0, 0.9);
+  sun.position.set(120, 220, 160);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, { left: -160, right: 160, top: 160, bottom: -160, near: 10, far: 700 });
+  scene.add(sun);
+
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.ShadowMaterial({ opacity: 0.22 }));
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  let grid;
+  function buildGrid() {
+    if (grid) { scene.remove(grid); grid.geometry.dispose(); }
+    const cs = getComputedStyle(document.documentElement);
+    grid = new THREE.GridHelper(400, 40, new THREE.Color(cs.getPropertyValue('--muted').trim()), new THREE.Color(cs.getPropertyValue('--line').trim()));
+    grid.position.y = -0.05;
+    scene.add(grid);
+  }
+  buildGrid();
+  if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', buildGrid);
+
+  // ---------- materials ----------
+  const green = new THREE.MeshStandardMaterial({ color: 0x59b526, roughness: 0.5, metalness: 0.25 });
+  const plate = new THREE.MeshStandardMaterial({ color: 0x6f7b6a, roughness: 0.7, metalness: 0.3 });
+  const wood = new THREE.MeshStandardMaterial({ color: 0x9c4f22, roughness: 0.6 });
+
+  const model = new THREE.Group();
+  scene.add(model);
+
+  function bar(x1, y1, z1, x2, y2, z2, t, mat) {
+    t = t || 2.5;
+    const sx = Math.max(Math.abs(x2 - x1), t), sy = Math.max(Math.abs(y2 - y1), t), sz = Math.max(Math.abs(z2 - z1), t);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat || green);
+    m.position.set((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2);
+    m.castShadow = true;
+    return m;
+  }
+
+  // ---------- frame ----------
+  const frame = new THREE.Group();
+  model.add(frame);
+  const Y0 = LEG, Y1 = 50, Y2 = 90;
+  // legs
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => frame.add(bar(sx * (HX - 1.5), 0, sz * (HZ - 1.5), sx * (HX - 1.5), Y0, sz * (HZ - 1.5), 3)));
+  // horizontal rectangles at Y0, Y1, Y2
+  [Y0, Y1, Y2].forEach(y => {
+    [-HZ + 1.25, HZ - 1.25].forEach(z => frame.add(bar(-HX, y, z, HX, y, z)));
+    [-HX + 1.25, HX - 1.25].forEach(x => frame.add(bar(x, y, -HZ, x, y, HZ)));
+  });
+  // vertical posts
+  [-1, 1].forEach(sz => {
+    const z = sz * (HZ - 1.25);
+    [-HX + 1.25, HX - 1.25].forEach(x => frame.add(bar(x, Y0, z, x, Y2, z)));
+    frame.add(bar(0, Y0, z, 0, Y1, z));
+    frame.add(bar(-25, Y1, z, -25, Y2, z));
+    frame.add(bar(25, Y1, z, 25, Y2, z));
+    // roof posts
+    frame.add(bar(-HX + 1.25, Y2, z, -HX + 1.25, Y2 + (sz < 0 ? 4 : 1.5), z));
+    frame.add(bar(HX - 1.25, Y2, z, HX - 1.25, Y2 + (sz < 0 ? 4 : 1.5), z));
+  });
+  // upper mid rail (front and back)
+  [-HZ + 1.25, HZ - 1.25].forEach(z => frame.add(bar(-25, 70, z, 25, 70, z, 2)));
+  // floor plate
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(W - 4, 0.8, D - 4), plate);
+  floor.position.set(0, Y0 + 0.4, 0);
+  floor.receiveShadow = true;
+  frame.add(floor);
+  // door frame on lower front
+  const door = new THREE.Group();
+  door.add(bar(-70, 13, HZ + 1, 70, 13, HZ + 1, 2));
+  door.add(bar(-70, 47, HZ + 1, 70, 47, HZ + 1, 2));
+  door.add(bar(-70, 13, HZ + 1, -70, 47, HZ + 1, 2));
+  door.add(bar(70, 13, HZ + 1, 70, 47, HZ + 1, 2));
+  door.add(bar(0, 13, HZ + 1, 0, 47, HZ + 1, 2));
+  const latch = new THREE.Mesh(new THREE.BoxGeometry(3, 5, 2), plate);
+  latch.position.set(0, 48.5, HZ + 2.5);
+  door.add(latch);
+  frame.add(door);
+
+  // ---------- wire mesh ----------
+  const meshTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const g = c.getContext('2d');
+    g.strokeStyle = '#a7dd7c'; g.lineWidth = 3;
+    g.strokeRect(1.5, 1.5, 128, 128);
+    g.beginPath(); g.moveTo(64, 0); g.lineTo(64, 128); g.moveTo(0, 64); g.lineTo(128, 64); g.stroke();
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return t;
+  })();
+  function meshPanel(w, h, x, y, z, rotY) {
+    const tex = meshTex.clone(); tex.needsUpdate = true;
+    tex.repeat.set(w / 4, h / 4); // 2 cm cells
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.2, side: THREE.DoubleSide, depthWrite: false }));
+    m.position.set(x, y, z); m.rotation.y = rotY;
+    return m;
+  }
+  [[Y0 + 2.5, Y1 - 2.5], [Y1 + 2.5, Y2 - 2.5]].forEach(([a, b]) => {
+    const h = b - a, cy = (a + b) / 2;
+    frame.add(meshPanel(W - 5, h, 0, cy, HZ - 1.25, 0));
+    frame.add(meshPanel(W - 5, h, 0, cy, -HZ + 1.25, 0));
+    frame.add(meshPanel(D - 5, h, HX - 1.25, cy, 0, Math.PI / 2));
+    frame.add(meshPanel(D - 5, h, -HX + 1.25, cy, 0, Math.PI / 2));
+  });
+
+  // ---------- signage ----------
+  function texFrom(w, h, draw) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    draw(c.getContext('2d'), w, h);
+    const t = new THREE.CanvasTexture(c);
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return t;
+  }
+  // name board 60 x 24 cm
+  const board = new THREE.Group();
+  board.add(new THREE.Mesh(new THREE.BoxGeometry(60, 24, 0.6), new THREE.MeshStandardMaterial({ color: 0x74d233, roughness: 0.6 })));
+  const boardText = new THREE.Mesh(new THREE.PlaneGeometry(60, 24), new THREE.MeshBasicMaterial({
+    transparent: true,
+    map: texFrom(900, 360, (g, w, h) => {
+      g.clearRect(0, 0, w, h);
+      g.fillStyle = '#101610'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = 'bold 70px Arial, sans-serif';
+      g.fillText('BANK SAMPAH', w / 2, 62);
+      g.fillText('BOTOL PLASTIK', w / 2, 140);
+      g.fillText('DESA SADASARI', w / 2, 218);
+      g.font = 'bold 44px Arial, sans-serif';
+      g.fillText('KELOMPOK 4', w / 2, 282);
+      g.fillText('KKM UMC 2026', w / 2, 330);
+    })
+  }));
+  boardText.position.z = 0.35;
+  board.add(boardText);
+  board.position.set(35, 72, HZ + 0.9);
+  frame.add(board);
+  // SOP board 36 x 24 cm
+  const sop = new THREE.Group();
+  sop.add(new THREE.Mesh(new THREE.BoxGeometry(36, 24, 0.5), new THREE.MeshStandardMaterial({ color: 0xf1f1ec, roughness: 0.8 })));
+  const sopFace = new THREE.Mesh(new THREE.PlaneGeometry(36, 24), new THREE.MeshBasicMaterial({
+    map: texFrom(540, 360, (g, w, h) => {
+      g.fillStyle = '#f1f1ec'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#1c2a1f'; g.font = 'bold 34px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('SOP', w / 2, 34);
+      const cw = 240, ch = 130;
+      for (let i = 0; i < 4; i++) {
+        const x = 22 + (i % 2) * (cw + 16), y = 66 + Math.floor(i / 2) * (ch + 14);
+        g.fillStyle = '#d5d9d0'; g.fillRect(x, y, cw, ch);
+        g.fillStyle = '#3f9a1c'; g.beginPath(); g.arc(x + 20, y + 20, 14, 0, 7); g.fill();
+        g.fillStyle = '#fff'; g.font = 'bold 20px Arial'; g.fillText(String(i + 1), x + 20, y + 21);
+        g.fillStyle = '#a5ab9f'; for (let l = 0; l < 3; l++) g.fillRect(x + 14, y + 70 + l * 16, cw - 28 - l * 30, 6);
+      }
+    })
+  }));
+  sopFace.position.z = 0.28;
+  sop.add(sopFace);
+  sop.position.set(-47, 72, HZ + 0.9);
+  frame.add(sop);
+
+  // ---------- wooden rack (accessory, left side) ----------
+  const rack = new THREE.Group();
+  const rb = (w, h, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wood); m.position.set(x, y, z); m.castShadow = true; rack.add(m); };
+  rb(2, 34, 10, -HX - 3, 70, 16);       // back board
+  rb(4, 30, 1.5, -HX - 5, 68, 11.5);    // side plates
+  rb(4, 30, 1.5, -HX - 5, 68, 20.5);
+  rb(4, 1.5, 10, -HX - 5, 53.5, 16);    // bottom
+  rb(4, 1.5, 10, -HX - 5, 83.5, 16);    // top
+  model.add(rack);
+
+  // ---------- roof (corrugated, slight slope to the front) ----------
+  const roofGroup = new THREE.Group();
+  const rg = new THREE.PlaneGeometry(W + 4, D + 4, 160, 1);
+  const pos = rg.attributes.position;
+  for (let i = 0; i < pos.count; i++) pos.setZ(i, Math.sin(pos.getX(i) * Math.PI * 2 / 6) * 1.1);
+  rg.computeVertexNormals();
+  const roof = new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ color: 0xa5ada3, roughness: 0.55, metalness: 0.45, side: THREE.DoubleSide }));
+  roof.rotation.x = -Math.PI / 2;
+  roof.castShadow = true;
+  roofGroup.add(roof);
+  roofGroup.position.set(0, 93.5, 0);
+  roofGroup.rotation.x = 0.08;
+  model.add(roofGroup);
+
+  // ---------- bottles ----------
+  const bottles = new THREE.Group();
+  (function () {
+    let s = 7;
+    const rnd = () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const mat = new THREE.MeshStandardMaterial({ color: 0x7db6f2, transparent: true, opacity: 0.6, roughness: 0.15, metalness: 0.1 });
+    const capMat = new THREE.MeshStandardMaterial({ color: 0x2d6fbf, roughness: 0.5 });
+    const geo = new THREE.CylinderGeometry(3, 3, 18, 12);
+    const capGeo = new THREE.CylinderGeometry(1.6, 1.6, 2, 10);
+    for (let i = 0; i < 70; i++) {
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(geo, mat));
+      const cap = new THREE.Mesh(capGeo, capMat); cap.position.y = 10; g.add(cap);
+      const layer = rnd() < 0.3 ? 1 : 0;
+      g.position.set(-66 + 132 * Math.pow(rnd(), 0.65), Y0 + 3.9 + layer * 6, (rnd() - 0.5) * 34);
+      g.rotation.z = Math.PI / 2 + (rnd() - 0.5) * 0.5;
+      g.rotation.y = (rnd() - 0.5) * 1.6;
+      bottles.add(g);
+    }
+  })();
+  model.add(bottles);
+
+  // ---------- dimensions ----------
+  const dims = new THREE.Group();
+  scene.add(dims);
+  const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--dim').trim() || '#d9480f';
+  const lineMat = new THREE.LineBasicMaterial({ color: new THREE.Color(dimColor), depthTest: false });
+  const thinMat = new THREE.LineBasicMaterial({ color: new THREE.Color(dimColor), transparent: true, opacity: 0.55, depthTest: false });
+  function line(a, b, mat) {
+    const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), mat || lineMat);
+    l.renderOrder = 10; dims.add(l);
+  }
+  function label(text, p, w) {
+    const c = document.createElement('canvas'); c.width = 400; c.height = 100;
+    const g = c.getContext('2d');
+    g.fillStyle = '#fffaf5'; g.strokeStyle = dimColor; g.lineWidth = 5;
+    g.beginPath(); g.roundRect ? g.roundRect(4, 4, 392, 92, 16) : g.rect(4, 4, 392, 92); g.fill(); g.stroke();
+    g.fillStyle = '#7a2a05'; g.font = 'bold 54px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text, 200, 52);
+    const t = new THREE.CanvasTexture(c);
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false }));
+    s.scale.set(w, w / 4, 1); s.position.set(...p); s.renderOrder = 11; dims.add(s);
+  }
+  function dimension(a, b, tickDir, text, labelPos, w) {
+    line(a, b);
+    [a, b].forEach(p => line([p[0] - tickDir[0], p[1] - tickDir[1], p[2] - tickDir[2]], [p[0] + tickDir[0], p[1] + tickDir[1], p[2] + tickDir[2]]));
+    label(text, labelPos, w || 30);
+  }
+  // Panjang (front, at ground)
+  dimension([-HX, 0, 46], [HX, 0, 46], [0, 0, 3], 'P = 150 cm', [0, 0, 55], 34);
+  line([-HX, 0, HZ], [-HX, 0, 48], thinMat); line([HX, 0, HZ], [HX, 0, 48], thinMat);
+  // Lebar (right side, at ground)
+  dimension([HX + 16, 0, -HZ], [HX + 16, 0, HZ], [3, 0, 0], 'L = 50 cm', [HX + 30, 0, 0], 30);
+  line([HX, 0, -HZ], [HX + 18, 0, -HZ], thinMat); line([HX, 0, HZ], [HX + 18, 0, HZ], thinMat);
+  // Tinggi (left front)
+  dimension([-HX - 16, 0, HZ], [-HX - 16, H, HZ], [3, 0, 0], 'T = 100 cm', [-HX - 34, H / 2, HZ], 32);
+  line([-HX, 0, HZ], [-HX - 18, 0, HZ], thinMat); line([-HX, H, HZ], [-HX - 18, H, HZ], thinMat);
+  // Kaki
+  dimension([HX + 6, 0, 40], [HX + 6, LEG, 40], [3, 0, 0], 'Kaki = 10 cm', [HX + 30, LEG / 2 + 1, 40], 36);
+  line([HX, LEG, HZ], [HX + 8, LEG, 40], thinMat); line([HX, 0, HZ], [HX + 8, 0, 40], thinMat);
+
+  // ---------- camera / orbit ----------
+  const cam = { theta: 0.72, phi: 1.12, radius: 330 };
+  const goal = { theta: cam.theta, phi: cam.phi, radius: cam.radius };
+  let animating = false;
+  function place() {
+    const sp = Math.sin(cam.phi);
+    camera.position.set(target.x + cam.radius * sp * Math.sin(cam.theta), target.y + cam.radius * Math.cos(cam.phi), target.z + cam.radius * sp * Math.cos(cam.theta));
+    camera.lookAt(target);
+  }
+  function fitRadius() { const a = camera.aspect; return a >= 1.4 ? 300 : a >= 1 ? 340 : 520 / Math.min(a * 1.15, 1) * 0.8 + 60; }
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', () => { resize(); if (!userMoved) { cam.radius = goal.radius = fitRadius(); } });
+  let userMoved = false;
+  resize(); cam.radius = goal.radius = fitRadius(); place();
+
+  const views = {
+    iso: [0.72, 1.12], front: [0, Math.PI / 2], side: [Math.PI / 2, Math.PI / 2], top: [0, 0.02]
+  };
+  const viewBtns = document.querySelectorAll('#views button');
+  viewBtns.forEach(b => b.addEventListener('click', () => {
+    const v = views[b.dataset.v];
+    goal.theta = v[0]; goal.phi = v[1]; goal.radius = fitRadius() * (b.dataset.v === 'top' ? 0.95 : 1);
+    animating = true; userMoved = false;
+    viewBtns.forEach(x => x.classList.toggle('on', x === b));
+  }));
+  document.querySelectorAll('#toggles button').forEach(b => b.addEventListener('click', () => {
+    const on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', String(on));
+    const t = b.dataset.t;
+    if (t === 'dims') dims.visible = on;
+    if (t === 'roof') roofGroup.visible = on;
+    if (t === 'rack') rack.visible = on;
+    if (t === 'bottles') bottles.visible = on;
+  }));
+
+  const ptrs = new Map();
+  let pinch = 0;
+  function stopAnim() { animating = false; userMoved = true; viewBtns.forEach(x => x.classList.remove('on')); }
+  canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); } });
+  canvas.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    if (ptrs.size === 1) {
+      stopAnim();
+      cam.theta -= (e.clientX - p.x) * 0.008;
+      cam.phi = Math.min(1.6, Math.max(0.02, cam.phi - (e.clientY - p.y) * 0.008));
+      goal.theta = cam.theta; goal.phi = cam.phi;
+    }
+    p.x = e.clientX; p.y = e.clientY;
+    if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch) { stopAnim(); cam.radius = goal.radius = Math.min(700, Math.max(90, cam.radius * pinch / d)); }
+      pinch = d;
+    }
+  });
+  const up = e => { ptrs.delete(e.pointerId); pinch = 0; };
+  canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
+  canvas.addEventListener('wheel', e => { e.preventDefault(); stopAnim(); cam.radius = goal.radius = Math.min(700, Math.max(90, cam.radius * Math.exp(e.deltaY * 0.001))); }, { passive: false });
+
+  function loop() {
+    if (animating) {
+      let dt = goal.theta - cam.theta; dt = Math.atan2(Math.sin(dt), Math.cos(dt));
+      cam.theta += dt * 0.12; cam.phi += (goal.phi - cam.phi) * 0.12; cam.radius += (goal.radius - cam.radius) * 0.12;
+      if (Math.abs(dt) < 0.002 && Math.abs(goal.phi - cam.phi) < 0.002 && Math.abs(goal.radius - cam.radius) < 0.5) { animating = false; cam.theta = goal.theta; cam.phi = goal.phi; cam.radius = goal.radius; }
+    }
+    place();
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+</script>
+</body>
+</html>
